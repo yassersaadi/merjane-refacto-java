@@ -1,7 +1,10 @@
 package com.nimbleways.springboilerplate.services.implementations;
 
 import java.time.LocalDate;
+import java.util.Set;
 
+import com.nimbleways.springboilerplate.entities.Order;
+import com.nimbleways.springboilerplate.repositories.OrderRepository;
 import org.springframework.stereotype.Service;
 
 import com.nimbleways.springboilerplate.entities.Product;
@@ -14,10 +17,12 @@ public class ProductService {
 
     private final NotificationService notificationService;
 
+    private final OrderRepository orderRepository;
 
-    public ProductService(NotificationService notificationService, ProductRepository productRepository) {
+    public ProductService(NotificationService notificationService, ProductRepository productRepository, OrderRepository orderRepository) {
         this.notificationService = notificationService;
         this.productRepository = productRepository;
+        this.orderRepository = orderRepository;
     }
 
     public void handleSeasonalProduct(Product product) {
@@ -53,11 +58,24 @@ public class ProductService {
             p.setAvailable(p.getAvailable() - 1);
             productRepository.save(p);
         } else if (p.hasLeadTime()) {
-            Integer leadTime = p.getLeadTime();
-            p.setLeadTime(leadTime);
-            notificationService.sendDelayNotification(leadTime, p.getName());
+            notificationService.sendDelayNotification(p.getLeadTime(), p.getName());
             productRepository.save(p);
         }
     }
 
+    public Order proccessOrder(Long orderId) {
+        Order order = orderRepository.findById(orderId).orElseThrow();
+
+        Set<Product> products = order.getItems();
+        for (Product product : products) {
+            if ("NORMAL".equals(product.getType())) {
+                handleNormalProduct(product);
+            } else if ("SEASONAL".equals(product.getType())) {
+                handleSeasonalProduct(product);
+            } else if ("EXPIRABLE".equals(product.getType())) {
+                handleExpiredProduct(product);
+            }
+        }
+        return order;
+    }
 }
