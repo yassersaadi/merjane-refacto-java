@@ -148,4 +148,68 @@ class ProductServiceUnitTest {
         Mockito.verify(productRepository, Mockito.times(1)).save(product);
         Mockito.verify(notificationService, Mockito.times(1)).sendDelayNotification(product.getLeadTime(), product.getName());
     }
+
+
+    @Test
+    void handle_normal_product_should_remove_product_when_normal_product_is_available() {
+        Product product = new Product(null,
+                10,
+                2,
+                "NORMAL",
+                "RJ45 Cable",
+                null,
+                null,
+                null);
+
+        Mockito.when(productRepository.save(product)).thenReturn(product);
+
+
+        productService.handleNormalProduct(product);
+
+        assertThat(product.getAvailable()).isOne();
+        Mockito.verify(productRepository, Mockito.times(1)).save(product);
+    }
+
+
+    @Test
+    void handle_normal_product_should_send_delay_notification_when_normal_product_is_unavailable_and_product_has_lead_time() {
+        Product product = new Product(null,
+                10,
+                0,
+                "NORMAL",
+                "RJ45 Cable",
+                null,
+                null,
+                null);
+
+        Mockito.when(productRepository.save(product)).thenReturn(product);
+
+
+        productService.handleNormalProduct(product);
+
+        Mockito.verify(productRepository, Mockito.times(1)).save(product);
+        Mockito.verify(notificationService, Mockito.times(1)).sendDelayNotification(product.getLeadTime(), product.getName());
+    }
+
+    @Test
+    void handle_normal_product_should_do_nothing_when_normal_product_is_unavailable_and_product_lead_time_equals_zero() {
+        Product product = new Product(null,
+                0,
+                0,
+                "NORMAL",
+                "RJ45 Cable",
+                null,
+                null,
+                null);
+
+        Mockito.when(productRepository.save(product)).thenReturn(product);
+
+
+        productService.handleNormalProduct(product);
+
+        Mockito.verifyNoInteractions(productRepository);
+        Mockito.verifyNoInteractions(notificationService);
+    }
+
+
 }

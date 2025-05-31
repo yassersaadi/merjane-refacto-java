@@ -39,11 +39,15 @@ public class Product {
     @Column(name = "season_end_date")
     private LocalDate seasonEndDate;
 
+    public boolean hasLeadTime() {
+        return leadTime > 0;
+    }
+
     public boolean isExpired() {
-        return getExpiryDate().isAfter(LocalDate.now());
+        return expiryDate.isAfter(LocalDate.now());
     }
 
     public boolean isAvailable() {
-        return getAvailable() > 0;
+        return available > 0;
     }
 }
