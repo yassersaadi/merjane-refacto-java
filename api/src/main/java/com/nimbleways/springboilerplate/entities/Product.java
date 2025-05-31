@@ -38,4 +38,12 @@ public class Product {
 
     @Column(name = "season_end_date")
     private LocalDate seasonEndDate;
+
+    public boolean isExpired() {
+        return getExpiryDate().isAfter(LocalDate.now());
+    }
+
+    public boolean isAvailable() {
+        return getAvailable() > 0;
+    }
 }

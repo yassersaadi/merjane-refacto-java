@@ -39,13 +39,13 @@ public class ProductService {
     }
 
     public void handleExpiredProduct(Product p) {
-        if (p.getAvailable() > 0 && p.getExpiryDate().isAfter(LocalDate.now())) {
+        if (p.isAvailable() && p.isExpired()) {
             p.setAvailable(p.getAvailable() - 1);
-            productRepository.save(p);
         } else {
             notificationService.sendExpirationNotification(p.getName(), p.getExpiryDate());
             p.setAvailable(0);
-            productRepository.save(p);
         }
+        productRepository.save(p);
     }
+
 }
