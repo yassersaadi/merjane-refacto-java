@@ -19,23 +19,24 @@ public class ProductService {
         this.productRepository = productRepository;
     }
 
-    public void notifyDelay(int leadTime, Product p) {
-        p.setLeadTime(leadTime);
-        productRepository.save(p);
-        notificationService.sendDelayNotification(leadTime, p.getName());
+    public void notifyDelay(int leadTime, String productName) {
+        notificationService.sendDelayNotification(leadTime, productName);
     }
 
-    public void handleSeasonalProduct(Product p) {
-        if (LocalDate.now().plusDays(p.getLeadTime()).isAfter(p.getSeasonEndDate())) {
-            notificationService.sendOutOfStockNotification(p.getName());
-            p.setAvailable(0);
-            productRepository.save(p);
-        } else if (p.getSeasonStartDate().isAfter(LocalDate.now())) {
-            notificationService.sendOutOfStockNotification(p.getName());
-            productRepository.save(p);
-        } else {
-            notifyDelay(p.getLeadTime(), p);
+    private static String getName(Product p) {
+        return p.getName();
+    }
+
+    public void handleSeasonalProduct(Product product) {
+        if (LocalDate.now().plusDays(product.getLeadTime()).isAfter(product.getSeasonEndDate())) {
+            notificationService.sendOutOfStockNotification(product.getName());
+            product.setAvailable(0);
+        } else if (product.getSeasonStartDate().isAfter(LocalDate.now())) {
+            notificationService.sendOutOfStockNotification(product.getName());
+        }else {
+            notifyDelay(product.getLeadTime(), getName(product));
         }
+        productRepository.save(product);
     }
 
     public void handleExpiredProduct(Product product) {

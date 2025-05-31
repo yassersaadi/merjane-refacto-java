@@ -50,7 +50,9 @@ public class ProductController {
                 } else {
                     int leadTime = p.getLeadTime();
                     if (leadTime > 0) {
-                        productService.notifyDelay(leadTime, p);
+                        p.setLeadTime(leadTime);
+                        productRepository.save(p);
+                        productService.notifyDelay(leadTime, p.getName());
                     }
                 }
             } else if (p.getType().equals("SEASONAL")) {

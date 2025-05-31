@@ -35,12 +35,11 @@ class ProductServiceUnitTest {
         Mockito.when(productRepository.save(product)).thenReturn(product);
 
         // WHEN
-        productService.notifyDelay(product.getLeadTime(), product);
+        productService.notifyDelay(product.getLeadTime(), product.getName());
 
         // THEN
         assertEquals(0, product.getAvailable());
         assertEquals(15, product.getLeadTime());
-        Mockito.verify(productRepository, Mockito.times(1)).save(product);
         Mockito.verify(notificationService, Mockito.times(1)).sendDelayNotification(product.getLeadTime(), product.getName());
     }
 
