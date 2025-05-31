@@ -5,12 +5,9 @@ import com.nimbleways.springboilerplate.entities.Order;
 import com.nimbleways.springboilerplate.entities.Product;
 import com.nimbleways.springboilerplate.repositories.OrderRepository;
 import com.nimbleways.springboilerplate.repositories.ProductRepository;
-import com.nimbleways.springboilerplate.services.implementations.NotificationService;
 import com.nimbleways.springboilerplate.services.implementations.ProductService;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Set;
 
 import org.springframework.http.HttpStatus;
@@ -29,55 +26,51 @@ public class ProductController {
 
     private final OrderRepository orderRepository;
 
-    private final NotificationService notificationService;
-
-    public ProductController(OrderRepository orderRepository, ProductRepository productRepository, ProductService productService, NotificationService notificationService) {
+    public ProductController(OrderRepository orderRepository, ProductRepository productRepository, ProductService productService) {
         this.orderRepository = orderRepository;
         this.productRepository = productRepository;
         this.productService = productService;
-        this.notificationService = notificationService;
     }
 
     @PostMapping("{orderId}/processOrder")
     @ResponseStatus(HttpStatus.OK)
     public ProcessOrderResponse processOrder(@PathVariable Long orderId) {
         Order order = orderRepository.findById(orderId).get();
-        System.out.println(order);
-        List<Long> ids = new ArrayList<>();
-        ids.add(orderId);
+
+
         Set<Product> products = order.getItems();
-        for (Product p : products) {
-            if (p.getType().equals("NORMAL")) {
-                if (p.getAvailable() > 0) {
-                    p.setAvailable(p.getAvailable() - 1);
-                    productRepository.save(p);
-                } else {
-                    int leadTime = p.getLeadTime();
-                    if (leadTime > 0) {
-                        p.setLeadTime(leadTime);
-                        productRepository.save(p);
-                        notificationService.sendDelayNotification(leadTime, p.getName());
-                    }
-                }
-            } else if (p.getType().equals("SEASONAL")) {
-                // Add new season rules
-                if ((LocalDate.now().isAfter(p.getSeasonStartDate()) && LocalDate.now().isBefore(p.getSeasonEndDate())
-                        && p.getAvailable() > 0)) {
-                    p.setAvailable(p.getAvailable() - 1);
-                    productRepository.save(p);
-                } else {
-                    productService.handleSeasonalProduct(p);
-                }
-            } else if (p.getType().equals("EXPIRABLE")) {
-                if (p.getAvailable() > 0 && p.getExpiryDate().isAfter(LocalDate.now())) {
-                    p.setAvailable(p.getAvailable() - 1);
-                    productRepository.save(p);
-                } else {
-                    productService.handleExpiredProduct(p);
-                }
+        for (Product product : products) {
+            if ("NORMAL".equals(product.getType())) {
+                productService.handleNormalProduct(product);
+            } else if ("SEASONAL".equals(product.getType())) {
+                handleSeasonalProduct(product);
+            } else if ("EXPIRABLE".equals(product.getType())) {
+                handleExpirableProduct(product);
             }
         }
 
         return new ProcessOrderResponse(order.getId());
+    }
+
+
+    private void handleSeasonalProduct(Product p) {
+        // Add new season rules
+        if ((LocalDate.now().isAfter(p.getSeasonStartDate()) && LocalDate.now().isBefore(p.getSeasonEndDate())
+                && p.getAvailable() > 0)) {
+            p.setAvailable(p.getAvailable() - 1);
+            productRepository.save(p);
+        } else {
+            productService.handleSeasonalProduct(p);
+        }
+    }
+
+
+    private void handleExpirableProduct(Product product) {
+        if (product.getAvailable() > 0 && product.getExpiryDate().isAfter(LocalDate.now())) {
+            product.setAvailable(product.getAvailable() - 1);
+            productRepository.save(product);
+        } else {
+            productService.handleExpiredProduct(product);
+        }
     }
 }

@@ -14,6 +14,7 @@ public class ProductService {
 
     private final NotificationService notificationService;
 
+
     public ProductService(NotificationService notificationService, ProductRepository productRepository) {
         this.notificationService = notificationService;
         this.productRepository = productRepository;
@@ -26,7 +27,7 @@ public class ProductService {
             product.setAvailable(0);
         } else if (product.getSeasonStartDate().isAfter(LocalDate.now())) {
             notificationService.sendOutOfStockNotification(productName);
-        }else {
+        } else {
             notificationService.sendDelayNotification(product.getLeadTime(), productName);
         }
         productRepository.save(product);
@@ -45,6 +46,18 @@ public class ProductService {
             return product.getAvailable() - 1;
         }
         return 0;
+    }
+
+    public void handleNormalProduct(Product p) {
+        if (p.isAvailable()) {
+            p.setAvailable(p.getAvailable() - 1);
+            productRepository.save(p);
+        } else if (p.hasLeadTime()) {
+            Integer leadTime = p.getLeadTime();
+            p.setLeadTime(leadTime);
+            notificationService.sendDelayNotification(leadTime, p.getName());
+            productRepository.save(p);
+        }
     }
 
 }
