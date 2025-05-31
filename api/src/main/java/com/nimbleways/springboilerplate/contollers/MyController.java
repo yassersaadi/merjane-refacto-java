@@ -12,7 +12,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -23,19 +22,22 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/orders")
 public class MyController {
-    @Autowired
-    private ProductService ps;
+    private final ProductService productService;
 
-    @Autowired
-    private ProductRepository pr;
+    private final ProductRepository productRepository;
 
-    @Autowired
-    private OrderRepository or;
+    private final OrderRepository orderRepository;
+
+    public MyController(OrderRepository orderRepository, ProductRepository productRepository, ProductService productService) {
+        this.orderRepository = orderRepository;
+        this.productRepository = productRepository;
+        this.productService = productService;
+    }
 
     @PostMapping("{orderId}/processOrder")
     @ResponseStatus(HttpStatus.OK)
     public ProcessOrderResponse processOrder(@PathVariable Long orderId) {
-        Order order = or.findById(orderId).get();
+        Order order = orderRepository.findById(orderId).get();
         System.out.println(order);
         List<Long> ids = new ArrayList<>();
         ids.add(orderId);
@@ -44,11 +46,11 @@ public class MyController {
             if (p.getType().equals("NORMAL")) {
                 if (p.getAvailable() > 0) {
                     p.setAvailable(p.getAvailable() - 1);
-                    pr.save(p);
+                    productRepository.save(p);
                 } else {
                     int leadTime = p.getLeadTime();
                     if (leadTime > 0) {
-                        ps.notifyDelay(leadTime, p);
+                        productService.notifyDelay(leadTime, p);
                     }
                 }
             } else if (p.getType().equals("SEASONAL")) {
@@ -56,16 +58,16 @@ public class MyController {
                 if ((LocalDate.now().isAfter(p.getSeasonStartDate()) && LocalDate.now().isBefore(p.getSeasonEndDate())
                         && p.getAvailable() > 0)) {
                     p.setAvailable(p.getAvailable() - 1);
-                    pr.save(p);
+                    productRepository.save(p);
                 } else {
-                    ps.handleSeasonalProduct(p);
+                    productService.handleSeasonalProduct(p);
                 }
             } else if (p.getType().equals("EXPIRABLE")) {
                 if (p.getAvailable() > 0 && p.getExpiryDate().isAfter(LocalDate.now())) {
                     p.setAvailable(p.getAvailable() - 1);
-                    pr.save(p);
+                    productRepository.save(p);
                 } else {
-                    ps.handleExpiredProduct(p);
+                    productService.handleExpiredProduct(p);
                 }
             }
         }
