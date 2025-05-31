@@ -19,18 +19,15 @@ public class ProductService {
         this.productRepository = productRepository;
     }
 
-    private static String getName(Product p) {
-        return p.getName();
-    }
-
     public void handleSeasonalProduct(Product product) {
+        String productName = product.getName();
         if (LocalDate.now().plusDays(product.getLeadTime()).isAfter(product.getSeasonEndDate())) {
-            notificationService.sendOutOfStockNotification(product.getName());
+            notificationService.sendOutOfStockNotification(productName);
             product.setAvailable(0);
         } else if (product.getSeasonStartDate().isAfter(LocalDate.now())) {
-            notificationService.sendOutOfStockNotification(product.getName());
+            notificationService.sendOutOfStockNotification(productName);
         }else {
-            notificationService.sendDelayNotification(product.getLeadTime(), getName(product));
+            notificationService.sendDelayNotification(product.getLeadTime(), productName);
         }
         productRepository.save(product);
     }
