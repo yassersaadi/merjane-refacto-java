@@ -14,7 +14,6 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import java.time.LocalDate;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @ExtendWith(SpringExtension.class)
 @UnitTest
@@ -26,22 +25,6 @@ class ProductServiceUnitTest {
     private ProductRepository productRepository;
     @InjectMocks
     private ProductService productService;
-
-    @Test
-    void test() {
-        // GIVEN
-        Product product = new Product(null, 15, 0, "NORMAL", "RJ45 Cable", null, null, null);
-
-        Mockito.when(productRepository.save(product)).thenReturn(product);
-
-        // WHEN
-        productService.notifyDelay(product.getLeadTime(), product.getName());
-
-        // THEN
-        assertEquals(0, product.getAvailable());
-        assertEquals(15, product.getLeadTime());
-        Mockito.verify(notificationService, Mockito.times(1)).sendDelayNotification(product.getLeadTime(), product.getName());
-    }
 
 
     @Test

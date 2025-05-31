@@ -5,6 +5,7 @@ import com.nimbleways.springboilerplate.entities.Order;
 import com.nimbleways.springboilerplate.entities.Product;
 import com.nimbleways.springboilerplate.repositories.OrderRepository;
 import com.nimbleways.springboilerplate.repositories.ProductRepository;
+import com.nimbleways.springboilerplate.services.implementations.NotificationService;
 import com.nimbleways.springboilerplate.services.implementations.ProductService;
 
 import java.time.LocalDate;
@@ -28,10 +29,13 @@ public class ProductController {
 
     private final OrderRepository orderRepository;
 
-    public ProductController(OrderRepository orderRepository, ProductRepository productRepository, ProductService productService) {
+    private final NotificationService notificationService;
+
+    public ProductController(OrderRepository orderRepository, ProductRepository productRepository, ProductService productService, NotificationService notificationService) {
         this.orderRepository = orderRepository;
         this.productRepository = productRepository;
         this.productService = productService;
+        this.notificationService = notificationService;
     }
 
     @PostMapping("{orderId}/processOrder")
@@ -52,7 +56,7 @@ public class ProductController {
                     if (leadTime > 0) {
                         p.setLeadTime(leadTime);
                         productRepository.save(p);
-                        productService.notifyDelay(leadTime, p.getName());
+                        notificationService.sendDelayNotification(leadTime, p.getName());
                     }
                 }
             } else if (p.getType().equals("SEASONAL")) {

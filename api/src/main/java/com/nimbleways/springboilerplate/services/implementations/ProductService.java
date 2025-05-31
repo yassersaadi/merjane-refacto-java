@@ -19,10 +19,6 @@ public class ProductService {
         this.productRepository = productRepository;
     }
 
-    public void notifyDelay(int leadTime, String productName) {
-        notificationService.sendDelayNotification(leadTime, productName);
-    }
-
     private static String getName(Product p) {
         return p.getName();
     }
@@ -34,7 +30,7 @@ public class ProductService {
         } else if (product.getSeasonStartDate().isAfter(LocalDate.now())) {
             notificationService.sendOutOfStockNotification(product.getName());
         }else {
-            notifyDelay(product.getLeadTime(), getName(product));
+            notificationService.sendDelayNotification(product.getLeadTime(), getName(product));
         }
         productRepository.save(product);
     }
