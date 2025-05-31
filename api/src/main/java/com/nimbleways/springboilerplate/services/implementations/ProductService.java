@@ -38,14 +38,19 @@ public class ProductService {
         }
     }
 
-    public void handleExpiredProduct(Product p) {
-        if (p.isAvailable() && p.isExpired()) {
-            p.setAvailable(p.getAvailable() - 1);
-        } else {
-            notificationService.sendExpirationNotification(p.getName(), p.getExpiryDate());
-            p.setAvailable(0);
+    public void handleExpiredProduct(Product product) {
+        product.setAvailable(calculateAvailableProduct(product));
+        if (!product.isAvailable()) {
+            notificationService.sendExpirationNotification(product.getName(), product.getExpiryDate());
         }
-        productRepository.save(p);
+        productRepository.save(product);
+    }
+
+    private int calculateAvailableProduct(Product product) {
+        if (product.isAvailable() && product.isExpired()) {
+            return product.getAvailable() - 1;
+        }
+        return 0;
     }
 
 }
