@@ -30,7 +30,7 @@ import java.util.Set;
 // Which allows a better performance and needs to do less mocks
 @SpringBootTest
 @AutoConfigureMockMvc
-public class MyControllerIntegrationTests {
+class ProductControllerIntegrationTests {
         @Autowired
         private MockMvc mockMvc;
 
@@ -44,7 +44,7 @@ public class MyControllerIntegrationTests {
         private ProductRepository productRepository;
 
         @Test
-        public void processOrderShouldReturn() throws Exception {
+        void processOrderShouldReturn() throws Exception {
                 List<Product> allProducts = createProducts();
                 Set<Product> orderItems = new HashSet<Product>(allProducts);
                 Order order = createOrder(orderItems);

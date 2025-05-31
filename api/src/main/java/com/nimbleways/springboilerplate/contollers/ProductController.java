@@ -21,14 +21,14 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/orders")
-public class MyController {
+public class ProductController {
     private final ProductService productService;
 
     private final ProductRepository productRepository;
 
     private final OrderRepository orderRepository;
 
-    public MyController(OrderRepository orderRepository, ProductRepository productRepository, ProductService productService) {
+    public ProductController(OrderRepository orderRepository, ProductRepository productRepository, ProductService productService) {
         this.orderRepository = orderRepository;
         this.productRepository = productRepository;
         this.productService = productService;
